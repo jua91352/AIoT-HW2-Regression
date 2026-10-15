@@ -4,8 +4,11 @@
 
 純前端互動網頁：所有統計計算（OLS、交叉驗證、特徵選擇、Lasso／Ridge、AR）都在瀏覽器中以 JavaScript 完成，可以直接部署到 **GitHub Pages** 或 **Vercel**，不需要 Python 伺服器。
 
-- 線上版（Vercel，含股票代號功能）：_部署後填入_
-- 線上版（GitHub Pages）：_部署後填入_
+- 線上版（Vercel）：https://aiot-hw2-regression.vercel.app
+- 線上版（GitHub Pages）：https://jua91352.github.io/AIoT-HW2-Regression/
+- 直接開啟問題 ②：在網址後面加上 `#ar`
+
+兩個版本功能相同；股票代號下載由 Vercel 的 `/api/stock` 提供（GitHub Pages 版會呼叫 Vercel 的 API）。
 
 ## 加分項對應
 
@@ -72,7 +75,7 @@ node scripts/dev-server.js
 ## 部署
 
 - **Vercel**：匯入此 GitHub 專案即可（Framework Preset 選 Other，不需建置指令）。`api/stock.js` 會自動成為 Serverless Function，提供股票代號下載。
-- **GitHub Pages**：Settings → Pages → Deploy from a branch → `main` / root。靜態版可使用範例、CSV 網址與上傳檔案；若要在 GitHub Pages 版使用股票代號，把 Vercel 網址填進 `js/config.js` 的 `REMOTE_STOCK_API`。
+- **GitHub Pages**：Settings → Pages → Deploy from a branch → `main` / root。GitHub Pages 沒有後端，股票代號功能透過 `js/config.js` 的 `REMOTE_STOCK_API` 呼叫 Vercel 上的 API。
 
 ## 檔案結構
 
