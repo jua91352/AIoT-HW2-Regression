@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HW2 線性回歸預測平台</title>
+<meta name="description" content="多元線性回歸與 Auto Regression 股價預測互動平台：可自訂資料來源，依 CRISP-DM 流程完成特徵選擇、模型評估與預測區間。">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%232a78d6'/><path d='M7 23 13 15l5 4 7-10' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/jstat@1.9.6/dist/jstat.min.js" defer></script>
+<script type="module" src="js/app.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <h1>HW2 線性回歸預測平台</h1>
+    <p>物聯網應用與資料分析（7716）· 游雅婷 5115056031 · 依 CRISP-DM 流程</p>
+  </div>
+  <div class="problem-picker">
+    <label for="problem">選擇問題 Problem</label>
+    <select id="problem">
+      <option value="mlr">① 多元線性回歸 Multiple Linear Regression（表格資料）</option>
+      <option value="ar">② 自迴歸 Auto Regression（股價時間序列預測）</option>
+    </select>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <!-- 問題 ①：多元線性回歸 -->
+    <div class="panel-group" data-problem="mlr">
+      <section class="panel">
+        <h2><span class="step">1</span>資料來源</h2>
+        <div class="seg" id="mlr-mode">
+          <button type="button" data-value="sample" class="on">範例資料</button>
+          <button type="button" data-value="url">CSV 網址</button>
+          <button type="button" data-value="upload">上傳檔案</button>
+        </div>
+        <div class="pane" data-mode="sample">
+          <select id="mlr-sample" aria-label="範例資料集"></select>
+          <p class="hint" id="mlr-sample-note"></p>
+        </div>
+        <div class="pane" data-mode="url" hidden>
+          <div class="input-row">
+            <input id="mlr-url" type="url" aria-label="CSV 網址" placeholder="https://…/data.csv"
+              value="https://raw.githubusercontent.com/Avik-Jain/100-Days-Of-ML-Code/master/datasets/50_Startups.csv">
+            <button type="button" class="btn primary" id="mlr-url-load">載入</button>
+          </div>
+          <p class="hint">任何公開的 CSV 連結都可以；GitHub 檔案頁面網址會自動轉成 raw，Google 試算表請設為「知道連結的人可檢視」。試試看：</p>
+          <div class="chips">
+            <button type="button" class="chip" data-url="https://raw.githubusercontent.com/Avik-Jain/100-Days-Of-ML-Code/master/datasets/50_Startups.csv">50_Startups</button>
+            <button type="button" class="chip" data-url="https://raw.githubusercontent.com/amankharwal/Website-data/master/CarPrice.csv">Kaggle 汽車價格（24 特徵）</button>
+            <button type="button" class="chip" data-url="https://raw.githubusercontent.com/selva86/datasets/master/BostonHousing.csv">Boston 房價</button>
+            <button type="button" class="chip" data-url="https://raw.githubusercontent.com/stedy/Machine-Learning-with-R-datasets/master/insurance.csv">醫療保險費</button>
+          </div>
+        </div>
+        <div class="pane" data-mode="upload" hidden>
+          <label class="file"><input type="file" id="mlr-file" accept=".csv,.txt,text/csv"><span id="mlr-file-name">選擇 CSV 檔案…</span></label>
+          <p class="hint">檔案只在你的瀏覽器裡處理，不會上傳到任何伺服器。</p>
+        </div>
+        <p class="status" id="mlr-status"></p>
+      </section>
+      <section class="panel">
+        <h2><span class="step">2</span>欄位設定</h2>
+        <label class="field">預測目標 y<select id="mlr-target"></select></label>
+        <div class="field">
+          <span>排除的欄位 <small>勾選 = 不當作特徵</small></span>
+          <div class="checklist" id="mlr-exclude"></div>
+        </div>
+      </section>
+      <section class="panel">
+        <h2><span class="step">3</span>模型設定</h2>
+        <label class="field">特徵選擇方法<select id="mlr-method"></select></label>
+        <div class="field">
+          <span>保留特徵數 k：<output id="mlr-k-out"></output></span>
+          <input type="range" id="mlr-k" min="1" max="1" value="1" step="1" aria-label="保留特徵數 k">
+          <label class="check"><input type="checkbox" id="mlr-kauto" checked><span>自動使用交叉驗證最佳 k</span></label>
+        </div>
+        <div class="field">
+          <span>測試集比例：<output id="mlr-test-out">20%</output></span>
+          <input type="range" id="mlr-test" min="0.1" max="0.5" step="0.05" value="0.2" aria-label="測試集比例">
+        </div>
+        <label class="field">信賴水準（CI / PI）
+          <select id="mlr-conf"><option value="90">90%</option><option value="95" selected>95%</option><option value="99">99%</option></select>
+        </label>
+        <label class="field">最多使用筆數 <small>資料太大時隨機抽樣</small>
+          <input type="number" id="mlr-max" value="20000" min="100" max="200000" step="1000">
+        </label>
+      </section>
+    </div>
+
+    <!-- 問題 ②：Auto Regression -->
+    <div class="panel-group" data-problem="ar" hidden>
+      <section class="panel">
+        <h2><span class="step">1</span>資料來源</h2>
+        <div class="seg seg-4" id="ar-mode">
+          <button type="button" data-value="sample" class="on">範例</button>
+          <button type="button" data-value="ticker">股票代號</button>
+          <button type="button" data-value="url">CSV 網址</button>
+          <button type="button" data-value="upload">上傳</button>
+        </div>
+        <div class="pane" data-mode="sample">
+          <select id="ar-sample" aria-label="範例資料"></select>
+          <p class="hint" id="ar-sample-note"></p>
+        </div>
+        <div class="pane" data-mode="ticker" hidden>
+          <div class="input-row">
+            <input id="ar-ticker" value="2330.TW" aria-label="股票代號" autocomplete="off">
+            <select id="ar-range" aria-label="期間">
+              <option value="1y">1 年</option><option value="2y">2 年</option><option value="5y" selected>5 年</option><option value="10y">10 年</option><option value="max">全部</option>
+            </select>
+          </div>
+          <button type="button" class="btn primary block" id="ar-ticker-load">下載股價（Yahoo Finance）</button>
+          <div class="chips">
+            <button type="button" class="chip" data-ticker="2330.TW">台積電</button>
+            <button type="button" class="chip" data-ticker="2317.TW">鴻海</button>
+            <button type="button" class="chip" data-ticker="0050.TW">元大台灣50</button>
+            <button type="button" class="chip" data-ticker="AAPL">Apple</button>
+            <button type="button" class="chip" data-ticker="NVDA">NVIDIA</button>
+          </div>
+          <p class="hint">台股上市加 <code>.TW</code>、上櫃加 <code>.TWO</code>；美股直接輸入代號。此功能需部署在 Vercel（使用 <code>/api/stock</code>）。</p>
+        </div>
+        <div class="pane" data-mode="url" hidden>
+          <div class="input-row">
+            <input id="ar-url" type="url" aria-label="CSV 網址" value="https://raw.githubusercontent.com/plotly/datasets/master/finance-charts-apple.csv">
+            <button type="button" class="btn primary" id="ar-url-load">載入</button>
+          </div>
+          <p class="hint">CSV 需要有一個日期欄位與一個數值欄位（例如收盤價）。不限股價，氣溫、用電量、銷售量都可以。</p>
+        </div>
+        <div class="pane" data-mode="upload" hidden>
+          <label class="file"><input type="file" id="ar-file" accept=".csv,.txt,text/csv"><span id="ar-file-name">選擇 CSV 檔案…</span></label>
+          <p class="hint">檔案只在你的瀏覽器裡處理，不會上傳到任何伺服器。</p>
+        </div>
+        <p class="status" id="ar-status"></p>
+      </section>
+      <section class="panel">
+        <h2><span class="step">2</span>欄位設定</h2>
+        <label class="field">日期欄位<select id="ar-date"></select></label>
+        <label class="field">預測欄位（價格）<select id="ar-value"></select></label>
+      </section>
+      <section class="panel">
+        <h2><span class="step">3</span>模型設定</h2>
+        <label class="field">建模尺度
+          <select id="ar-scale">
+            <option value="log" selected>對數價格 log(y)（誤差與價格成比例）</option>
+            <option value="level">原始價格 y</option>
+          </select>
+        </label>
+        <label class="field">落後期數 p 的選擇（特徵選擇）<select id="ar-lagmode"></select></label>
+        <div class="field" id="ar-p-field" hidden>
+          <span>落後期數 p：<output id="ar-p-out">5</output></span>
+          <input type="range" id="ar-p" min="1" max="30" value="5" step="1" aria-label="落後期數 p">
+        </div>
+        <label class="field">AIC／BIC 搜尋的最大 p<input type="number" id="ar-maxlag" value="30" min="1" max="60"></label>
+        <div class="field">
+          <span>測試期比例（依時間切分）：<output id="ar-test-out">20%</output></span>
+          <input type="range" id="ar-test" min="0.1" max="0.4" step="0.05" value="0.2" aria-label="測試期比例">
+        </div>
+        <div class="field">
+          <span>未來預測天數：<output id="ar-h-out">20</output></span>
+          <input type="range" id="ar-h" min="5" max="60" step="1" value="20" aria-label="未來預測天數">
+        </div>
+        <label class="field">信賴水準（CI / PI）
+          <select id="ar-conf"><option value="90">90%</option><option value="95" selected>95%</option><option value="99">99%</option></select>
+        </label>
+      </section>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="alert" id="alert" role="alert" hidden></div>
+    <section class="kpis" id="kpis" aria-live="polite"></section>
+    <nav class="tabs" id="tabs" role="tablist" aria-label="CRISP-DM 步驟">
+      <button type="button" data-tab="business" class="on"><b>1</b>商業理解</button>
+      <button type="button" data-tab="data"><b>2</b>資料理解</button>
+      <button type="button" data-tab="prep"><b>3</b>資料準備</button>
+      <button type="button" data-tab="model"><b>4</b>建模</button>
+      <button type="button" data-tab="eval"><b>5</b>評估</button>
+      <button type="button" data-tab="deploy"><b>6</b>部署</button>
+    </nav>
+    <div id="tab-content" class="tab-content"></div>
+  </main>
+</div>
+
+<footer class="footer">
+  <span>所有計算都在瀏覽器中以 JavaScript 完成（OLS、交叉驗證、Lasso／Ridge、AR）。圖表：Plotly.js · CSV：PapaParse · 分布函數：jStat</span>
+  <a id="repo-link" href="#" target="_blank" rel="noopener" hidden>GitHub 原始碼</a>
+</footer>
+
+<div class="busy" id="busy" hidden><span class="spinner"></span><span id="busy-text">計算中…</span></div>
+</body>
+</html>
