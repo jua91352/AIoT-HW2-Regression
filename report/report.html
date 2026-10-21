@@ -1,0 +1,202 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><title>HW2 報告書 5115056031</title><style>
+@page { size: A4; margin: 16mm 15mm 18mm; }
+* { box-sizing: border-box; }
+body { font-family: "Microsoft JhengHei", "Noto Sans TC", sans-serif; font-size: 10.5pt; line-height: 1.7; color: #1d1d1b; margin: 0; }
+h1 { font-size: 24pt; line-height: 1.3; margin: 0 0 8px; color: #0b0b0b; }
+h2 { font-size: 15pt; color: #1c5cab; border-bottom: 2px solid #2a78d6; padding-bottom: 4px; margin: 26px 0 10px; break-after: avoid; }
+h3 { font-size: 12pt; color: #0b0b0b; margin: 18px 0 6px; break-after: avoid; }
+p { margin: 6px 0; }
+ul, ol { margin: 6px 0; padding-left: 22px; } li { margin: 2px 0; }
+a { color: #1c5cab; word-break: break-all; }
+code { font-family: Consolas, monospace; font-size: 9pt; background: #f0efeb; padding: 0 4px; border-radius: 3px; }
+table { border-collapse: collapse; width: 100%; margin: 8px 0 12px; font-size: 9.5pt; break-inside: avoid; }
+th, td { border: 1px solid #e1e0d9; padding: 5px 8px; text-align: left; vertical-align: top; }
+th { background: #f0efeb; font-weight: bold; }
+td.num, th.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+figure { margin: 10px 0 14px; text-align: center; break-inside: avoid; }
+figure img { border: 1px solid #e1e0d9; border-radius: 6px; max-width: 100%; }
+figcaption { font-size: 9pt; color: #52514e; margin-top: 4px; }
+.cover { height: 250mm; display: flex; flex-direction: column; break-after: page; }
+.cover .tag { color: #2a78d6; font-weight: bold; letter-spacing: .08em; font-size: 11pt; }
+.cover .sub { font-size: 13pt; color: #52514e; margin: 0 0 18px; }
+.cover .meta { margin-top: auto; font-size: 11pt; line-height: 2; border-top: 1px solid #e1e0d9; padding-top: 12px; }
+.cover img { width: 100%; border: 1px solid #e1e0d9; border-radius: 8px; margin: 10px 0; }
+.box { background: #f4f8fd; border: 1px solid #cde2fb; border-radius: 8px; padding: 10px 14px; margin: 10px 0; break-inside: avoid; }
+.warn { background: #fff8e8; border-color: #fbe3a6; }
+.label { display: inline-block; background: #2a78d6; color: #fff; font-size: 9pt; font-weight: bold; padding: 1px 10px; border-radius: 999px; margin-right: 6px; vertical-align: middle; }
+.label.nb { background: #1baf7a; }
+.kpis { display: flex; gap: 8px; margin: 10px 0; }
+.kpi { flex: 1; background: #f0efeb; border-radius: 8px; padding: 8px 10px; }
+.kpi b { display: block; font-size: 15pt; color: #0b0b0b; }
+.kpi span { font-size: 8.5pt; color: #52514e; }
+.toc li { margin: 3px 0; }
+.pb { break-before: page; }
+.keep { break-inside: avoid; }
+.ok { color: #006300; font-weight: bold; } .ng { color: #9a6500; font-weight: bold; }
+blockquote { margin: 8px 0; padding: 8px 14px; border-left: 4px solid #1baf7a; background: #f3faf6; }
+blockquote .nbh { font-weight: bold; color: #0b6b4a; margin-top: 10px; }
+blockquote ul, blockquote ol { margin: 4px 0 6px; }
+</style></head><body>
+<section class="cover">
+  <div class="tag">HW2：MULTIPLE LINEAR REGRESSION</div>
+  <h1>線性回歸預測平台 報告書<br>自迴歸（Auto Regression）股價預測</h1>
+  <p class="sub">依 CRISP-DM 流程｜互動網頁：下拉選單切換兩種問題、使用者可自行更換資料來源</p>
+  <img src="figures/ar01_page.png">
+  <div class="meta">
+    課程：物聯網應用與資料分析（7716）<br>
+    學生：游雅婷　學號：5115056031<br>
+    網頁：<a href="https://aiot-hw2-regression.vercel.app">https://aiot-hw2-regression.vercel.app</a>（GitHub Pages：<a href="https://jua91352.github.io/AIoT-HW2-Regression/">https://jua91352.github.io/AIoT-HW2-Regression/</a>）<br>
+    原始碼：<a href="https://github.com/jua91352/AIoT-HW2-Regression">https://github.com/jua91352/AIoT-HW2-Regression</a><br>
+    日期：2026-10-22
+  </div>
+</section>
+
+<h2>摘要</h2>
+<div class="box">
+<p>本作業製作一個可直接部署的互動式線性回歸預測平台：頁首下拉選單可切換「① 多元線性回歸」與「② 自迴歸 Auto Regression」兩種問題，使用者可用範例資料、股票代號、任意 CSV 網址或上傳檔案更換資料來源，所有統計計算都在瀏覽器中完成，並部署於 Vercel 與 GitHub Pages。</p>
+<p>本報告以問題 ② 為主：以台積電（2330.TW）1,213 個交易日的收盤價，依 CRISP-DM 建立 AR(p) 模型。以 AIC／BIC 選擇落後期數（特徵選擇）得到 AR(1)，估計係數 φ₁ = 1.0006，顯示股價接近隨機漫步。測試期（2025-10-14 ～ 2026-10-14，243 天）一步預測 RMSE = 41.762，略優於 Naive 基準的 41.908；改用對數價格建模後，95% 預測區間的實際涵蓋率從 63.8% 提升到 94.2%。</p>
+</div>
+
+<h3>目錄</h3>
+<ol class="toc">
+  <li>作業需求對照</li><li>平台概觀</li><li>CRISP-DM：自迴歸股價預測（主體）</li><li>可任意輸入資料（加分項）</li>
+  <li>問題 ①：多元線性回歸（簡述）</li><li>主流解法比較</li><li>NotebookLM 摘要</li><li>GPT 輔助內容</li>
+  <li>數值正確性驗證</li><li>結論與限制</li>
+</ol>
+
+<h2 class="pb">一、作業需求對照</h2>
+<table><thead><tr><th class="">作業要求</th><th class="">本作業的做法</th><th class="">報告位置</th></tr></thead><tbody><tr><td class="">加分 +1：下拉視窗呈現兩種 problem</td><td class="">頁首「選擇問題 Problem」：① 多元線性回歸、② 自迴歸 Auto Regression</td><td class="">第二章、圖 1</td></tr><tr><td class="">加分 +2：可任意輸入 Dataset</td><td class="">範例資料／股票代號／任意 CSV 網址／上傳檔案；50_Startups 網址實測</td><td class="">第四章</td></tr><tr><td class="">線性回歸：單純、多元或 Auto Regression</td><td class="">主體為 AR(p)（以落後值為特徵的多元線性回歸）；問題 ① 為 MLR</td><td class="">第三章、第五章</td></tr><tr><td class="">Kaggle 資料集、特徵 > 13、標示來源</td><td class="">問題 ①：Kaggle Predict the Flood，20 個特徵，附連結</td><td class="">第五章</td></tr><tr><td class="">特徵選擇 Feature Selection</td><td class="">AR：以 AIC／BIC 選擇落後期數 p；MLR：4 種方法＋CV</td><td class="">3.4 節</td></tr><tr><td class="">模型評估 Model Evaluation</td><td class="">MAE、MSE、RMSE、MAPE、R²、方向準確率、Ljung-Box；與 Naive 比較</td><td class="">3.5 節</td></tr><tr><td class="">預測圖＋信賴區間或預測區間</td><td class="">測試期一步預測＋95% CI／PI；未來 20 日預測＋95% PI</td><td class="">圖 13、14、18</td></tr><tr><td class="">CRISP-DM 六步驟</td><td class="">網頁六個分頁；本報告第三章逐步說明</td><td class="">第三章</td></tr><tr><td class="">GitHub + web</td><td class=""><a href="https://github.com/jua91352/AIoT-HW2-Regression">https://github.com/jua91352/AIoT-HW2-Regression</a><br><a href="https://aiot-hw2-regression.vercel.app">https://aiot-hw2-regression.vercel.app</a></td><td class="">3.6 節</td></tr><tr><td class="">NotebookLM 摘要、GPT 輔助內容</td><td class="">股價預測摘要（第七章）、洪水預測摘要（5.1 節）；GPT 輔助內容（第八章）；AI 對話紀錄 PDF 另行上傳</td><td class="">第七、八章、5.1 節</td></tr></tbody></table>
+
+<h2 class="pb">二、平台概觀</h2>
+<p>網頁分成三個區塊：頁首右側是<b>問題下拉選單</b>；左側是資料來源、欄位設定、模型設定；主畫面依 CRISP-DM 分成六個分頁，最上方的指標卡顯示測試期 RMSE、MAPE、漲跌方向準確率與下一交易日預測。</p>
+<figure><img src="figures/ar01_page.png" style="width:100%"><figcaption>圖 1　問題 ② 自迴歸的首頁：頁首下拉選單切換兩種問題、左側可更換資料來源</figcaption></figure>
+<p>多元線性回歸（問題 ①）已於 DIC2 繳交過一個版本，本報告只在第五章簡述，主體為自迴歸。</p>
+
+<h2 class="pb">三、CRISP-DM：自迴歸股價預測</h2>
+
+<h3>3.1 Business Understanding 商業理解</h3>
+<ul>
+  <li><b>問題：</b>用過去 p 個交易日的收盤價，預測下一個交易日的收盤價，並往後預測 20 個交易日、附上預測區間。</li>
+  <li><b>模型：</b>自迴歸 AR(p)：y<sub>t</sub> = c + φ₁y<sub>t−1</sub> + … + φ<sub>p</sub>y<sub>t−p</sub> + ε<sub>t</sub>。本質上是把「前幾天的價格」當成特徵的多元線性回歸，因此可以沿用 OLS、信賴區間與預測區間。</li>
+  <li><b>使用者與決策：</b>學生與投資人了解價格的慣性與不確定性；預測區間用來評估合理價格範圍與風險，而不是買賣訊號。</li>
+  <li><b>成功標準：</b>測試期 RMSE 低於 Naive 基準（明天價格 = 今天價格）；95% 預測區間的實際涵蓋率接近 95%。</li>
+</ul>
+<figure><img src="figures/ar02_business.png" style="width:100%"><figcaption>圖 2　網頁「商業理解」分頁</figcaption></figure>
+
+<h3>3.2 Data Understanding 資料理解</h3>
+<ul>
+  <li><b>資料來源：</b>Yahoo Finance 台積電 2330.TW 日線資料（<a href="https://finance.yahoo.com/quote/2330.TW/history">finance.yahoo.com/quote/2330.TW</a>），由本平台的 <code>/api/stock</code> 下載並內建於網站。</li>
+  <li><b>期間：</b>2021-10-14 ～ 2026-10-14，共 1,213 個交易日；欄位為 Date、Open、High、Low、Close、Adj Close、Volume，預測目標為 Close。</li>
+  <li><b>走勢：</b>收盤價從 573 元漲到 2,490 元；測試期第一天為 1,425 元，測試期內上漲約 75%。</li>
+  <li><b>自我相關：</b>ACF 緩慢遞減、PACF 在第 1 期之後落入信賴界線內 → 價格具強烈慣性且非定態，適合從 AR(1) 開始建模。</li>
+</ul>
+<figure><img src="figures/ar03_price.png" style="width:100%"><figcaption>圖 3　台積電收盤價 K 線圖（紅漲綠跌，可拖曳縮放）</figcaption></figure>
+<figure><img src="figures/ar04_acf_pacf.png" style="width:100%"><figcaption>圖 4　ACF 與 PACF：ACF 緩慢遞減、PACF 在 lag 1 截斷</figcaption></figure>
+<figure><img src="figures/ar05_returns.png" style="width:100%"><figcaption>圖 5　日報酬率分布與最近 10 筆資料</figcaption></figure>
+
+<h3>3.3 Data Preparation 資料準備</h3>
+<ol>
+  <li>解析日期並由舊到新排序；移除缺失與重複日期（本資料皆為 0 筆）。</li>
+  <li><b>對數轉換：</b>以 log(Close) 建模。價格越高、每日波動的金額越大；取對數後誤差變成百分比尺度，變異數較穩定，預測完再以 exp() 轉回價格。</li>
+  <li><b>建立落後特徵：</b>第 t 天的特徵為前 1～p 天的值。</li>
+  <li><b>依時間切分、不打亂順序：</b>訓練期 970 天（2021-10-14 ～ 2025-10-13），測試期 243 天（2025-10-14 ～ 2026-10-14），避免用未來資料預測過去。</li>
+</ol>
+<figure><img src="figures/ar06_prep_steps.png" style="width:100%"><figcaption>圖 6　網頁「資料準備」分頁的步驟說明</figcaption></figure>
+<figure><img src="figures/ar07_lag_matrix.png" style="width:100%"><figcaption>圖 7　落後特徵矩陣（前 6 筆）</figcaption></figure>
+<figure><img src="figures/ar08_split.png" style="width:100%"><figcaption>圖 8　訓練期（藍）與測試期（橘）</figcaption></figure>
+
+<h3>3.4 Modeling 建模（含特徵選擇）</h3>
+<p><b>特徵選擇＝選擇落後期數 p。</b>在訓練期對 p = 1～30 分別配適 AR(p)，使用相同的樣本區間比較 AIC 與 BIC。對數尺度下 AIC 與 BIC 都在 <b>p = 1</b> 最小；原始價格尺度下 AIC 選 p = 10、BIC 選 p = 1。BIC 懲罰較重、偏好簡單模型；兩種尺度的 BIC 都支持 AR(1)。</p>
+<figure><img src="figures/ar09_lag_text.png" style="width:100%"><figcaption>圖 9　網頁「建模」分頁：落後期數選擇說明</figcaption></figure>
+<figure><img src="figures/ar10_lag_selection.png" style="width:100%"><figcaption>圖 10　AIC／BIC 與測試期 RMSE 隨落後期數的變化</figcaption></figure>
+<div class="keep"><p><b>AR(1) 估計結果（訓練期，對數價格）：</b></p>
+<table><thead><tr><th class="">變數</th><th class="num">係數</th><th class="num">標準誤</th><th class="num">t 值</th><th class="num">p 值</th><th class="num">95% CI 下限</th><th class="num">95% CI 上限</th></tr></thead><tbody><tr><td class="">截距 const</td><td class="num">-0.003016</td><td class="num">0.012497</td><td class="num">-0.24</td><td class="num">0.8094</td><td class="num">-0.027541</td><td class="num">0.021509</td></tr><tr><td class="">log y(t−1)</td><td class="num">1.000604</td><td class="num">0.001910</td><td class="num">523.99</td><td class="num">&lt; 1e-16</td><td class="num">0.996857</td><td class="num">1.004352</td></tr></tbody></table></div>
+<p>φ₁ = 1.0006（95% CI 0.9969 ～ 1.0044，涵蓋 1），截距不顯著（p = 0.8094）。這表示 log 價格幾乎是「昨天的值 + 隨機誤差」，也就是隨機漫步；殘差標準差 σ = 0.0192，相當於每日約 1.92% 的波動。訓練期 R² = 0.9965 很高，是因為價格水準本身的慣性，不代表能預測漲跌。</p>
+<figure><img src="figures/ar11_ar_table.png" style="width:100%"><figcaption>圖 11　網頁上的 AR 迴歸係數表</figcaption></figure>
+
+<h3>3.5 Evaluation 評估</h3>
+<p>測試期採「一步預測」：每天都用真實的前 p 天價格預測隔天，與 Naive 基準比較，並列出原始價格尺度的 AR(10) 作為對照。</p>
+<table><thead><tr><th class="">指標</th><th class="num">AR(1)，對數價格（採用）</th><th class="num">Naive（明天 = 今天）</th><th class="num">AR(10)，原始價格</th></tr></thead><tbody><tr><td class="">MAE</td><td class="num">30.858</td><td class="num">30.802</td><td class="num">30.395</td></tr><tr><td class="">MSE</td><td class="num">1,744</td><td class="num">1,756</td><td class="num">1,701</td></tr><tr><td class="">RMSE</td><td class="num">41.762</td><td class="num">41.908</td><td class="num">41.247</td></tr><tr><td class="">MAPE</td><td class="num">1.53%</td><td class="num">1.53%</td><td class="num">1.51%</td></tr><tr><td class="">R²</td><td class="num">0.9883</td><td class="num">0.9882</td><td class="num">0.9886</td></tr><tr><td class="">漲跌方向準確率</td><td class="num">52.8%</td><td class="num">—</td><td class="num">58.5%</td></tr><tr><td class="">95% 預測區間涵蓋率</td><td class="num"><span class="ok">94.2%</span></td><td class="num">—</td><td class="num"><span class="ng">63.8%</span></td></tr></tbody></table>
+<ul>
+  <li><b>準確度：</b>AR(1) 的 RMSE 比 Naive 低 0.35%，差距很小，符合「股價接近隨機漫步、難以贏過 Naive」的理論。原始價格的 AR(10) RMSE 略低（41.247），方向準確率 58.5%。</li>
+  <li><b>不確定性：</b>原始價格模型的 95% 預測區間只涵蓋 63.8% 的測試期天數——測試期股價從 1,425 漲到 2,490 元，每日波動的金額變大，用早期資料估計的誤差太小。對數價格模型的涵蓋率為 94.2%，接近 95%，因此網頁預設採用對數尺度。</li>
+  <li><b>殘差檢定：</b>Ljung-Box（lag 10）Q = 13.65，p = 0.190 &gt; 0.05，殘差近似白噪音，AR(1) 已捕捉到可用的自我相關。</li>
+</ul>
+<figure><img src="figures/ar12_metrics.png" style="width:100%"><figcaption>圖 12　網頁「評估」分頁：AR 與 Naive 的指標比較（對數價格）</figcaption></figure>
+<figure><img src="figures/ar13_prediction.png" style="width:100%"><figcaption>圖 13　預測圖：歷史價格、測試期一步預測（橘）與未來 20 日預測（綠），色帶為 95% 預測區間</figcaption></figure>
+<figure><img src="figures/ar14_test_interval.png" style="width:100%"><figcaption>圖 14　測試期放大：深色帶 = 95% 信賴區間（平均值）、淺色帶 = 95% 預測區間（單日價格）</figcaption></figure>
+<figure><img src="figures/ar19_metrics_level.png" style="width:100%"><figcaption>圖 15　對照：改用原始價格建模時，95% 預測區間涵蓋率只有約 64%</figcaption></figure>
+<figure><img src="figures/ar15_residuals.png" style="width:100%"><figcaption>圖 16　訓練期殘差的時間序列與分布（log 尺度）</figcaption></figure>
+<figure><img src="figures/ar16_resid_acf.png" style="width:100%"><figcaption>圖 17　殘差自我相關與 Ljung-Box 檢定</figcaption></figure>
+
+<h3>3.6 Deployment 部署</h3>
+<p>以全部資料重新估計 AR(1) 後遞迴預測未來 20 個交易日。第 2 天以後要用預測值當作落後值，誤差會累積，因此預測區間越來越寬。內建資料到 2026-10-14 為止，所以預測從下一個交易日開始；下表列出前 10 天，完整 20 天可在網頁下載 CSV。若在網頁用股票代號重新下載，會以最新資料預測。</p>
+<table><thead><tr><th class="">日期</th><th class="num">預測收盤價</th><th class="num">95% PI 下限</th><th class="num">95% PI 上限</th></tr></thead><tbody><tr><td class="">2026-10-15</td><td class="num">2,495.2</td><td class="num">2,402.1</td><td class="num">2,592.0</td></tr><tr><td class="">2026-10-16</td><td class="num">2,500.4</td><td class="num">2,369.4</td><td class="num">2,638.7</td></tr><tr><td class="">2026-10-19</td><td class="num">2,505.7</td><td class="num">2,345.8</td><td class="num">2,676.5</td></tr><tr><td class="">2026-10-20</td><td class="num">2,510.9</td><td class="num">2,326.7</td><td class="num">2,709.7</td></tr><tr><td class="">2026-10-21</td><td class="num">2,516.2</td><td class="num">2,310.7</td><td class="num">2,740.1</td></tr><tr><td class="">2026-10-22</td><td class="num">2,521.5</td><td class="num">2,296.7</td><td class="num">2,768.3</td></tr><tr><td class="">2026-10-23</td><td class="num">2,526.8</td><td class="num">2,284.3</td><td class="num">2,795.1</td></tr><tr><td class="">2026-10-26</td><td class="num">2,532.1</td><td class="num">2,273.1</td><td class="num">2,820.7</td></tr><tr><td class="">2026-10-27</td><td class="num">2,537.5</td><td class="num">2,262.9</td><td class="num">2,845.4</td></tr><tr><td class="">2026-10-28</td><td class="num">2,542.8</td><td class="num">2,253.6</td><td class="num">2,869.2</td></tr></tbody></table>
+<figure><img src="figures/ar17_forecast.png" style="width:100%"><figcaption>圖 18　網頁「部署」分頁：未來 20 個交易日預測與 95% 預測區間</figcaption></figure>
+<ul>
+  <li><b>網站：</b>Vercel（<a href="https://aiot-hw2-regression.vercel.app">https://aiot-hw2-regression.vercel.app</a>）與 GitHub Pages（<a href="https://jua91352.github.io/AIoT-HW2-Regression/">https://jua91352.github.io/AIoT-HW2-Regression/</a>），推送到 GitHub 後自動重新部署。</li>
+  <li><b>架構：</b>純前端 HTML + JavaScript（統計計算在瀏覽器完成），Vercel Serverless Function <code>api/stock.js</code> 代理 Yahoo Finance 股價；詳見 <code>design.md</code>。</li>
+  <li><b>使用：</b>預測結果可下載成 CSV；網頁支援手機瀏覽與深色模式。</li>
+</ul>
+<figure><img src="figures/ar22_mobile.png" style="width:28%"><figcaption>圖 19　手機版畫面</figcaption></figure>
+<div class="box warn">股價接近隨機漫步，本模型僅供課堂學習線性回歸與時間序列，不構成任何投資建議。</div>
+
+<h2 class="pb">四、可任意輸入資料（加分項）</h2>
+<p>使用者不需修改程式，就能在側邊欄更換資料來源：</p>
+<table><thead><tr><th class="">方式</th><th class="">說明</th><th class="">示範</th></tr></thead><tbody><tr><td class="">範例資料</td><td class="">台積電 2330.TW（內建）、Apple AAPL（plotly 公開資料）</td><td class="">本報告第三章</td></tr><tr><td class="">股票代號</td><td class="">輸入任何 Yahoo Finance 代號，台股加 .TW／.TWO，可選 1～10 年</td><td class="">元大台灣50 0050.TW（圖 20）</td></tr><tr><td class="">CSV 網址</td><td class="">任何含日期與數值欄位的公開 CSV；GitHub 頁面網址自動轉 raw</td><td class="">plotly finance-charts-apple.csv（圖 21）</td></tr><tr><td class="">上傳檔案</td><td class="">CSV 只在瀏覽器處理，不會上傳伺服器</td><td class="">—</td></tr></tbody></table>
+<figure><img src="figures/ar20_ticker.png" style="width:100%"><figcaption>圖 20　輸入股票代號 0050.TW 後自動下載並重新建模</figcaption></figure>
+<figure><img src="figures/ar21_csv_url.png" style="width:100%"><figcaption>圖 21　貼上 Apple 股價 CSV 網址，自動辨識日期與收盤價欄位</figcaption></figure>
+<p>問題 ① 也可輸入任意 CSV 網址。以老師指定的 50_Startups 為例（圖 22），系統自動把 State 做 one-hot、以交叉驗證選出 2 個特徵（R&D Spend、Marketing Spend），測試集 R² = 0.9464；係數為 R&amp;D Spend 0.8145、Marketing Spend 0.02474。</p>
+<figure><img src="figures/mlr03_custom_url.png" style="width:100%"><figcaption>圖 22　問題 ①：貼上 50_Startups.csv 網址即可完成特徵選擇與建模</figcaption></figure>
+
+<h2 class="pb">五、問題 ①：多元線性回歸（簡述，詳見 DIC2）</h2>
+<p>資料集為 Kaggle Playground Series S4E5「Predict the Flood」（<a href="https://www.kaggle.com/competitions/playground-series-s4e5">https://www.kaggle.com/competitions/playground-series-s4e5</a>），20 個洪水風險因子預測洪水機率，符合「特徵 &gt; 13」的要求；網頁使用訓練集隨機抽樣 20,000 筆，訓練／測試 = 16,000／4,000。</p>
+<table><thead><tr><th class="">特徵選擇方法</th><th class="">類型</th><th class="num">CV 最佳 k</th><th class="">前 3 名特徵</th><th class="num">計算時間</th></tr></thead><tbody><tr><td class="">SelectKBest（F 檢定）</td><td class="">Filter 過濾法</td><td class="num">20</td><td class="">TopographyDrainage、MonsoonIntensity、DamsQuality…</td><td class="num">15 ms</td></tr><tr><td class="">RFE 遞迴特徵消除</td><td class="">Wrapper 包裝法</td><td class="num">20</td><td class="">TopographyDrainage、MonsoonIntensity、RiverManagement…</td><td class="num">49 ms</td></tr><tr><td class="">Forward Selection 前向逐步選擇</td><td class="">Wrapper 包裝法</td><td class="num">20</td><td class="">TopographyDrainage、MonsoonIntensity、RiverManagement…</td><td class="num">56 ms</td></tr><tr><td class="">Lasso（L1 正則化）</td><td class="">Embedded 嵌入法</td><td class="num">20</td><td class="">TopographyDrainage、MonsoonIntensity、DamsQuality…</td><td class="num">39 ms</td></tr></tbody></table>
+<p>四種方法都選出全部 20 個特徵：每個特徵與目標的相關係數都只有 0.162～0.197、標準化係數幾乎相同，缺一不可（只用 5 個特徵時測試 R² 僅 0.177）。OLS 測試集 R² = 0.8434、RMSE = 0.02003，95% 預測區間涵蓋率 94.75%。</p>
+<figure><img src="figures/mlr02_prediction_interval.png" style="width:100%"><figcaption>圖 23　問題 ① 測試集預測圖＋95% 信賴區間／預測區間</figcaption></figure>
+<div class="keep">
+<h3>5.1 <span class="label nb">NotebookLM 摘要</span>Kaggle 洪水預測的同主題解法</h3>
+<p>以 NotebookLM 研究網路上 Kaggle Playground Series S4E5（Predict the Flood）的同主題解法，摘要如下：</p>
+<blockquote><p>在 Kaggle S4E5 洪水預測競賽中，單純多元線性回歸展現出驚人的基準表現，因目標值主要由特徵總和決定，僅靠線性擬合即可達到 0.845 的 R² 分數，優於未經特徵工程的原始樹狀模型；但其限制在於無法捕捉細微的非線性殘差與交互作用，導致分數到達瓶頸。社群隨後發現此資料結構，開發出關鍵的列級特徵工程，包含計算特徵總和（fsum）、按數值大小對列特徵進行排序，以及計算列標準差、極值與高於閾值的特徵數量等統計量。</p><p>前幾名優勝解法進一步結合 CatBoost、XGBoost、LightGBM 與 AutoGluon 等多元模型，並利用 Ridge 或 Lasso 回歸對多組折外預測（OOF）進行加權集成，成功將 R² 分數提升至 0.869 以上。這給予使用多元線性回歸的學生重要啟示：線性模型是快速驗證全局規律與建立強大 Baseline 的優良起點，但若要達到極致預測精度，仍需深入進行 EDA，結合列統計特徵開發與多模型集成，才能補足單一線性模型的侷限。</p></blockquote>
+</div>
+
+<h2>六、主流解法比較</h2>
+<h3>6.1 股價預測（問題 ②）</h3>
+<table><thead><tr><th class="">方法</th><th class="">做法</th><th class="">與本作業的關係</th></tr></thead><tbody><tr><td class="">Naive／隨機漫步</td><td class="">明天價格 = 今天價格</td><td class="">股價預測的標準基準；本作業 AR(1) 只略優於它</td></tr><tr><td class="">AR／ARIMA（Box-Jenkins）</td><td class="">以落後值（及差分、移動平均項）建模</td><td class="">本作業採用 AR(p)，以 AIC／BIC 選階數</td></tr><tr><td class="">GARCH 類模型</td><td class="">讓誤差變異數隨時間變化</td><td class="">可改善波動度變大時預測區間偏窄的問題（3.5 節）</td></tr><tr><td class="">機器學習（LSTM、XGBoost 等）</td><td class="">以大量技術指標或序列特徵訓練非線性模型</td><td class="">網路上常見，但樣本外常難以穩定贏過 Naive；超出「線性回歸」範圍</td></tr></tbody></table>
+<p>本作業的結果（φ₁ ≈ 1、RMSE 與 Naive 幾乎相同）與效率市場假說的看法一致：只用過去價格很難預測明天的漲跌；線性模型的價值在於提供可解釋的基準與合理的預測區間。</p>
+<h3>6.2 Kaggle 洪水預測（問題 ①）</h3>
+<table><thead><tr><th class="">模型</th><th class="">類型</th><th class="num">R²</th></tr></thead><tbody><tr><td class="">本平台：MLR（OLS，瀏覽器，抽樣 20,000 筆）</td><td class="">線性</td><td class="num">0.8434</td></tr><tr><td class="">MLR（OLS，20 個特徵）</td><td class="">線性</td><td class="num">0.8449</td></tr><tr><td class="">MLR + 列統計特徵工程</td><td class="">線性</td><td class="num">0.8658</td></tr><tr><td class="">HistGradientBoosting（原始特徵）</td><td class="">樹模型</td><td class="num">0.8355</td></tr><tr><td class="">HistGradientBoosting + 特徵工程</td><td class="">樹模型</td><td class="num">0.8689</td></tr><tr><td class="">Kaggle 前幾名（CatBoost／XGBoost／LightGBM 集成）</td><td class="">集成</td><td class="num">≈ 0.869</td></tr></tbody></table>
+<p>Python 版數據取自 1014 版分析（Kaggle 全部 1,117,957 筆，20% holdout）。線性模型已達 0.845，加入列統計特徵或樹模型集成可再提升到約 0.869。</p>
+
+<h2 class="pb">七、<span class="label nb">NotebookLM 摘要</span>股價預測的同主題解法</h2>
+<p>使用 NotebookLM 研究網路上以時間序列預測股價的同主題解法，請它比較主流方法、說明 AR 為何難以贏過 Naive，並給出建議。摘要如下（保留原文，只把公式改為一般寫法）：</p>
+<blockquote class="nb"><p>以下為您整理的時間序列股價預測主流方法比較與分析摘要：</p><p class="nbh">1. 主流預測方法比較</p><ul><li><b>Naive／隨機漫步基準</b>：做法為假設明日股價等於今日股價 (Ŷ<sub>t+1</sub> = Y<sub>t</sub>)。優點是極簡且零參數，完全無過擬合風險；缺點是無法預測趨勢轉折或波幅。</li><li><b>AR／ARIMA</b>：利用歷史價格（自迴歸 AR）與殘差（移動平均 MA）捕獲線性規律。優點是理論完備、適合平穩序列；缺點是無法處理非線性動態，面對非平穩股價易退化。</li><li><b>GARCH</b>：針對條件變異數建模，專注於捕捉金融市場的「波動聚集（Volatility Clustering）」現象。優點是精準評估風險與波動度，缺點是其預測標的為波動率而非價格方向。</li><li><b>LSTM (機器學習)</b>：透過門控機制學習非線性長短期依賴。優點是擬合能力強；缺點是需要大量數據、容易過擬合高噪音股價、模型為黑盒子且常見預測滯後（Lagging）。</li></ul><p class="nbh">2. 為什麼 AR 很難贏過 Naive 基準？</p><p>根據效率市場假說（EMH），股價價格序列近似隨機漫步，其報酬率自相關性極低且高噪音。若直接對非平穩的原始股價建立 AR 模型，參數會趨近於 1，實際退化為 Naive 模型；若對差分後的平穩報酬率建模，由於信躁比極低，估計出的 AR 參數多為樣本雜訊（過擬合），使得樣本外（Out-of-Sample）預測誤差往往大於零參數的 Naive 基準。</p><p class="nbh">3. 給用「線性回歸」預測股價學生的建議</p><ol><li><b>切勿直接預測原始股價</b>：原始股價是非平穩序列，直接做 OLS 迴歸會產生「偽迴歸（Spurious Regression）」及虛高 R² 的假象。</li><li><b>改為預測「報酬率」或「漲跌方向」</b>：將數據轉換為平穩序列後，再結合技術指標或總體經濟特徵進行預測。</li><li><b>務必以 Naive Model 為對照組</b>：採用滾動式樣本外驗證（Rolling Walk-Forward），並比較其 RMSE/MAE 是否真的擊敗簡單的 Naive Baseline。</li></ol></blockquote>
+<h3>7.2 與本作業結果的對照</h3>
+<table><thead><tr><th class="">NotebookLM 摘要的論點</th><th class="">本作業的結果</th></tr></thead><tbody><tr><td class="">對非平穩股價建立 AR 模型，參數會趨近 1、退化為 Naive</td><td class="">AR(1) 的 φ₁ = 1.0006（95% CI 0.9969 ～ 1.0044，涵蓋 1）；測試期 RMSE 41.762，與 Naive 的 41.908 幾乎相同，完全吻合。對數價格的一階差分就是報酬率，φ₁ ≈ 1 代表報酬率接近白噪音（Ljung-Box p = 0.190）</td></tr><tr><td class="">直接預測原始股價會出現偽迴歸與虛高的 R²</td><td class="">訓練期 R² = 0.9965、測試期 R² = 0.9883 都很高，但 Naive 的 R² 也有 0.9882；因此本報告以 Naive 為主要比較基準，不以 R² 判斷模型好壞</td></tr><tr><td class="">GARCH 能捕捉「波動聚集」、評估風險</td><td class="">原始價格模型的 95% 預測區間涵蓋率只有 63.8%；改用對數價格後為 94.2%，但換成 0050.TW 仍只有約 88%，顯示波動度會隨時間改變，GARCH 類模型是下一步</td></tr><tr><td class="">務必以 Naive 為對照組，並採滾動式樣本外驗證</td><td class="">本作業已以 Naive 為對照組，並依時間切分、每天用真實歷史值做一步預測；尚未做多個起點的滾動驗證，列為未來改進</td></tr><tr><td class="">改為預測報酬率或漲跌方向</td><td class="">網頁已計算漲跌方向準確率（52.8%，接近擲硬幣）；以報酬率為目標並加入技術指標的模型列為未來改進</td></tr></tbody></table>
+
+<h2>八、<span class="label">GPT 輔助內容</span>AI 協助說明</h2>
+<p>本作業使用 AI 助理 <b>Claude Code（Anthropic Claude）</b>協助完成。完整對話過程已匯出為 PDF（<code>5115056031_hw2_AI對話紀錄.pdf</code>），另行上傳至 iLearning。</p>
+<table><thead><tr><th class="">項目</th><th class="">由誰決定／完成</th></tr></thead><tbody><tr><td class="">作業需求解讀（讀取 iLearning 作業頁與 Notion 補充）</td><td class="">AI 讀取整理，學生確認</td></tr><tr><td class="">不使用 Streamlit，改為可部署到 GitHub／Vercel 的純前端網頁</td><td class="">學生決定</td></tr><tr><td class="">兩種 problem 的設計（多元線性回歸＋課堂教的股價自迴歸）</td><td class="">AI 提案，學生採用</td></tr><tr><td class="">統計核心、網頁介面、圖表、股價 API 的程式碼</td><td class="">AI 撰寫</td></tr><tr><td class="">數值正確性驗證（與 Python statsmodels 對照）</td><td class="">AI 執行</td></tr><tr><td class="">部署方式（GitHub + Vercel）與 repo 名稱</td><td class="">學生決定</td></tr><tr><td class="">依最新作業需求複查、決定報告以自迴歸為主</td><td class="">學生決定</td></tr><tr><td class="">本報告書、design.md、資訊圖表</td><td class="">AI 依網頁實際執行結果撰寫，學生審閱</td></tr></tbody></table>
+
+<div class="keep"><h2>九、數值正確性驗證</h2>
+<p>統計方法全部以 JavaScript 自行實作，因此逐項與 Python statsmodels 對照：</p>
+<table><thead><tr><th class="">項目</th><th class="">測試資料</th><th class="">結果</th></tr></thead><tbody><tr><td class="">AR(3) 係數與 5 步預測區間</td><td class="">台積電 2330.TW 收盤價</td><td class="">與 <code>AutoReg(...).get_prediction()</code> 一致</td></tr><tr><td class="">OLS 係數、標準誤、p 值、R²、F、AIC、BIC</td><td class="">50_Startups 全資料（含 State one-hot）</td><td class="">完全一致</td></tr><tr><td class="">新資料點的信賴區間與預測區間</td><td class="">同上</td><td class="">一致（小數點後 3 位內）</td></tr><tr><td class="">Durbin-Watson、Jarque-Bera、Breusch-Pagan、RESET</td><td class="">同上</td><td class="">一致</td></tr></tbody></table></div>
+
+<h2>十、結論與限制</h2>
+<ul>
+  <li>以 AIC／BIC 選出的 AR(1) 模型 φ₁ ≈ 1.0006，台積電股價接近隨機漫步；測試期 RMSE 41.762 僅略優於 Naive 的 41.908。</li>
+  <li>建模尺度對不確定性影響很大：對數價格讓 95% 預測區間涵蓋率從 63.8% 提升到 94.2%。</li>
+  <li>平台滿足兩個加分項：下拉選單切換兩種問題、可任意更換資料來源（股票代號、CSV 網址、上傳）。</li>
+  <li><b>限制：</b>AR 假設誤差變異數固定，市場波動度改變時預測區間仍會失準（例如 0050.TW 的涵蓋率為 88%）；未來日期只排除週末、未扣除國定假日；外部 CSV 需允許跨網域讀取。</li>
+  <li><b>未來改進：</b>依 NotebookLM 摘要的建議，改以報酬率或漲跌方向為預測目標、採滾動式樣本外驗證（Rolling Walk-Forward），並加入 GARCH 波動度模型與成交量等外生變數（ARX）。</li>
+</ul>
+
+<h2>參考資料</h2>
+<ol>
+  <li>Yahoo Finance，2330.TW 歷史股價：https://finance.yahoo.com/quote/2330.TW/history</li>
+  <li>Kaggle Playground Series S4E5：https://www.kaggle.com/competitions/playground-series-s4e5</li>
+  <li>50_Startups 資料集：https://raw.githubusercontent.com/Avik-Jain/100-Days-Of-ML-Code/master/datasets/50_Startups.csv</li>
+  <li>statsmodels：AutoReg、OLS 文件 https://www.statsmodels.org/</li>
+  <li>網頁使用的函式庫：Plotly.js、PapaParse、jStat</li>
+</ol>
+</body></html>

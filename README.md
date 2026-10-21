@@ -9,6 +9,16 @@
 - 直接開啟問題 ②：在網址後面加上 `#ar`
 - GPT 輔助內容與 NotebookLM 摘要：見本文最後兩節（AI 對話紀錄 PDF 另行上傳至 iLearning）
 
+## 文件
+
+| 文件 | 內容 |
+|---|---|
+| [報告書 PDF](report/5115056031_hw2_report.pdf) | 依 CRISP-DM 說明自迴歸股價預測（主體）、加分項、多元線性回歸簡述、主流解法比較、NotebookLM 摘要、GPT 輔助內容 |
+| [資訊圖表 PNG](report/5115056031_hw2_infographic.png)／[PDF](report/5115056031_hw2_infographic.pdf) | 一頁看懂：重點數字、CRISP-DM 六步驟、預測圖、兩個發現、資料來源 |
+| [design.md](design.md) | 設計文件：架構、模組、資料流程、演算法、介面、錯誤處理、部署與驗證 |
+
+報告書與資訊圖表的數字和截圖都由程式從網頁實際執行結果產生：`report/collect.py` 擷取數字與截圖，`report/build_report.py` 產生 PDF 與 PNG。
+
 兩個版本功能相同；股票代號下載由 Vercel 的 `/api/stock` 提供（GitHub Pages 版會呼叫 Vercel 的 API）。
 
 ## 加分項對應
@@ -93,6 +103,8 @@ js/config.js          部署設定（GitHub Pages 使用遠端股價 API 的網�
 api/stock.js          Vercel Serverless Function：代理 Yahoo Finance 日線資料
 scripts/dev-server.js 本機開發伺服器
 data/                 內建範例資料（Flood 抽樣、台積電股價）
+design.md             設計文件
+report/               報告書、資訊圖表、截圖（figures/）與產生程式
 ```
 
 ## GPT 輔助內容
@@ -113,6 +125,31 @@ AI 協助的範圍與學生的決定：
 | 部署方式（GitHub + Vercel）與 repo 名稱 | 學生決定 |
 
 ## NotebookLM 摘要
+
+### 股價預測（問題 ② 自迴歸）
+
+使用 NotebookLM 研究網路上以時間序列預測股價的同主題解法，摘要如下（保留原文）：
+
+> **1. 主流預測方法比較**
+>
+> - **Naive／隨機漫步基準**：做法為假設明日股價等於今日股價（$\hat{Y}_{t+1} = Y_t$）。優點是極簡且零參數，完全無過擬合風險；缺點是無法預測趨勢轉折或波幅。
+> - **AR／ARIMA**：利用歷史價格（自迴歸 AR）與殘差（移動平均 MA）捕獲線性規律。優點是理論完備、適合平穩序列；缺點是無法處理非線性動態，面對非平穩股價易退化。
+> - **GARCH**：針對條件變異數建模，專注於捕捉金融市場的「波動聚集（Volatility Clustering）」現象。優點是精準評估風險與波動度，缺點是其預測標的為波動率而非價格方向。
+> - **LSTM (機器學習)**：透過門控機制學習非線性長短期依賴。優點是擬合能力強；缺點是需要大量數據、容易過擬合高噪音股價、模型為黑盒子且常見預測滯後（Lagging）。
+>
+> **2. 為什麼 AR 很難贏過 Naive 基準？**
+>
+> 根據效率市場假說（EMH），股價價格序列近似隨機漫步，其報酬率自相關性極低且高噪音。若直接對非平穩的原始股價建立 AR 模型，參數會趨近於 1，實際退化為 Naive 模型；若對差分後的平穩報酬率建模，由於信躁比極低，估計出的 AR 參數多為樣本雜訊（過擬合），使得樣本外（Out-of-Sample）預測誤差往往大於零參數的 Naive 基準。
+>
+> **3. 給用「線性回歸」預測股價學生的建議**
+>
+> 1. **切勿直接預測原始股價**：原始股價是非平穩序列，直接做 OLS 迴歸會產生「偽迴歸（Spurious Regression）」及虛高 $R^2$ 的假象。
+> 2. **改為預測「報酬率」或「漲跌方向」**：將數據轉換為平穩序列後，再結合技術指標或總體經濟特徵進行預測。
+> 3. **務必以 Naive Model 為對照組**：採用滾動式樣本外驗證（Rolling Walk-Forward），並比較其 RMSE/MAE 是否真的擊敗簡單的 Naive Baseline。
+
+與本專案的對照：台積電 AR(1) 的 φ₁ = 1.0006（95% CI 涵蓋 1），測試期 RMSE 41.76 與 Naive 的 41.91 幾乎相同，正是摘要所說「參數趨近 1、退化為 Naive」；網頁因此以 Naive 為主要比較基準、不以 R² 判斷好壞。改以報酬率為目標、滾動式驗證與 GARCH 波動度模型列為未來改進。
+
+### Kaggle 洪水預測（問題 ① 多元線性回歸）
 
 以 NotebookLM 研究網路上 Kaggle Playground Series S4E5（Predict the Flood）的同主題解法，摘要如下：
 
