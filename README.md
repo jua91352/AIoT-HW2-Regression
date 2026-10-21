@@ -7,6 +7,7 @@
 - 線上版（Vercel）：https://aiot-hw2-regression.vercel.app
 - 線上版（GitHub Pages）：https://jua91352.github.io/AIoT-HW2-Regression/
 - 直接開啟問題 ②：在網址後面加上 `#ar`
+- GPT 輔助內容與 NotebookLM 摘要：見本文最後兩節（AI 對話紀錄 PDF 另行上傳至 iLearning）
 
 兩個版本功能相同；股票代號下載由 Vercel 的 `/api/stock` 提供（GitHub Pages 版會呼叫 Vercel 的 API）。
 
@@ -94,6 +95,29 @@ scripts/dev-server.js 本機開發伺服器
 data/                 內建範例資料（Flood 抽樣、台積電股價）
 ```
 
-## AI 輔助說明
+## GPT 輔助內容
 
-本專案程式碼由 Claude Code（Anthropic）協助撰寫，數值結果已與 statsmodels 對照驗證。
+本專案的程式碼、README 與部署流程由 AI 助理 **Claude Code（Anthropic Claude）** 協助完成，作為作業要求的「GPT 輔助內容」。完整對話過程已匯出為 PDF（`5115056031_hw2_AI對話紀錄.pdf`），另行上傳至 iLearning。
+
+紀錄範圍為 2026-10-15 的網頁開發與部署過程，依時間列出學生的提問、AI 的回覆、AI 提出的選項與學生的選擇；AI 執行的動作（讀網頁、寫程式、測試、部署）以一行摘要呈現，不含 AI 內部思考與工具原始輸出。
+
+AI 協助的範圍與學生的決定：
+
+| 項目 | 由誰決定／完成 |
+|---|---|
+| 作業需求解讀（讀取 iLearning 作業頁與 Notion 補充） | AI 讀取整理，學生確認 |
+| 不使用 Streamlit、改為可部署到 GitHub／Vercel 的純前端網頁 | 學生決定 |
+| 兩種 problem 的設計（多元線性回歸＋課堂教的股價 Auto Regression） | AI 提案，學生採用 |
+| 統計核心、網頁介面、圖表、股價 API 的程式碼 | AI 撰寫 |
+| 數值正確性驗證（與 Python statsmodels 對照） | AI 執行，結果記錄於上方「數值正確性驗證」 |
+| 部署方式（GitHub + Vercel）與 repo 名稱 | 學生決定 |
+
+## NotebookLM 摘要
+
+以 NotebookLM 研究網路上 Kaggle Playground Series S4E5（Predict the Flood）的同主題解法，摘要如下：
+
+> 在 Kaggle S4E5 洪水預測競賽中，單純多元線性回歸展現出驚人的基準表現，因目標值主要由特徵總和決定，僅靠線性擬合即可達到 0.845 的 R² 分數，優於未經特徵工程的原始樹狀模型；但其限制在於無法捕捉細微的非線性殘差與交互作用，導致分數到達瓶頸。社群隨後發現此資料結構，開發出關鍵的列級特徵工程，包含計算特徵總和（fsum）、按數值大小對列特徵進行排序，以及計算列標準差、極值與高於閾值的特徵數量等統計量。
+>
+> 前幾名優勝解法進一步結合 CatBoost、XGBoost、LightGBM 與 AutoGluon 等多元模型，並利用 Ridge 或 Lasso 回歸對多組折外預測（OOF）進行加權集成，成功將 R² 分數提升至 0.869 以上。這給予使用多元線性回歸的學生重要啟示：線性模型是快速驗證全局規律與建立強大 Baseline 的優良起點，但若要達到極致預測精度，仍需深入進行 EDA，結合列統計特徵開發與多模型集成，才能補足單一線性模型的侷限。
+
+與本專案的對照：網頁中 Flood 資料的多元線性回歸測試集 R² 為 0.843，與摘要提到的線性模型基準（約 0.845）一致；摘要中的列統計特徵與多模型集成屬於非線性方法，超出本作業「線性回歸」的範圍，因此未納入網頁。
